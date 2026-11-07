@@ -5,7 +5,7 @@ import re
 from .models import Classification
 
 
-URL_RE = re.compile(r"https?://[^\s<>)\]]+")
+URL_RE = re.compile(r"https?://[^\s<>\]]+")
 X_STATUS_RE = re.compile(
     r"https?://(?:www\.)?(?:x|twitter)\.com/[^/\s]+/status(?:es)?/(\d+)",
     re.IGNORECASE,
@@ -13,8 +13,17 @@ X_STATUS_RE = re.compile(
 
 
 def extract_urls(text: str) -> list[str]:
-    urls = [match.rstrip(".,;") for match in URL_RE.findall(text)]
+    urls = [_trim_url(match) for match in URL_RE.findall(text)]
     return list(dict.fromkeys(urls))
+
+
+def _trim_url(url: str) -> str:
+    # Keep balanced parentheses (Wikipedia: /wiki/Mercury_(planet)) but drop
+    # a closing one that belongs to the surrounding text or a Markdown link.
+    url = url.rstrip(".,;")
+    while url.endswith(")") and url.count(")") > url.count("("):
+        url = url[:-1].rstrip(".,;")
+    return url
 
 
 def classify_submission(text: str) -> Classification:

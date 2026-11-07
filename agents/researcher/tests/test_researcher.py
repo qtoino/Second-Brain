@@ -7,6 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 from unittest.mock import patch
 
+from agents.organizer.second_brain_agent.markdown import extract_urls as organizer_extract_urls
 from agents.organizer.second_brain_agent.markdown import parse_input_document
 from agents.researcher.brain import BrainReader
 from agents.researcher.classifier import classify_submission
@@ -38,6 +39,16 @@ class ResearcherClassifierTests(unittest.TestCase):
         self.assertEqual(classify_submission("What is LangGraph?").submission_type, "question")
         self.assertEqual(classify_submission("Decision theory").submission_type, "topic_or_concept")
         self.assertEqual(classify_submission("buy milk and call ana tomorrow").submission_type, "note")
+
+    def test_keeps_parentheses_in_wikipedia_urls(self) -> None:
+        wiki = "https://en.wikipedia.org/wiki/Mercury_(planet)"
+        self.assertEqual(classify_submission(wiki).primary_url, wiki)
+        self.assertEqual(classify_submission(f"read this ({wiki}).").primary_url, wiki)
+        self.assertEqual(classify_submission("see (https://example.com/a).").primary_url, "https://example.com/a")
+        self.assertEqual(
+            organizer_extract_urls(f"- [Mercury]({wiki})\n- [Ex](https://example.com/b)"),
+            [wiki, "https://example.com/b"],
+        )
 
 
 class ResearcherMarkdownTests(unittest.TestCase):
