@@ -7,7 +7,7 @@ from typing import Iterable, List
 
 from .models import InputDocument
 
-URL_RE = re.compile(r"(?:https?|telegram)://[^\s)>]+")
+URL_RE = re.compile(r"(?:https?|telegram)://[^\s>]+")
 
 
 class InputParseError(ValueError):
@@ -59,8 +59,17 @@ def parse_input_document(path: Path) -> InputDocument:
 def extract_urls(text: str) -> List[str]:
     urls = []
     for match in URL_RE.findall(text):
-        urls.append(match.rstrip(".,;"))
+        urls.append(_trim_url(match))
     return list(dict.fromkeys(urls))
+
+
+def _trim_url(url: str) -> str:
+    # Keep balanced parentheses (Wikipedia: /wiki/Mercury_(planet)) but drop
+    # a closing one that belongs to the surrounding text or a Markdown link.
+    url = url.rstrip(".,;")
+    while url.endswith(")") and url.count(")") > url.count("("):
+        url = url[:-1].rstrip(".,;")
+    return url
 
 
 def markdown_list(items: Iterable[str]) -> str:

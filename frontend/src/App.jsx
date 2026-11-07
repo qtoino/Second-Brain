@@ -391,7 +391,7 @@ export default function App() {
       if (!response.ok) {
         setScanStatus({
           running: false,
-          message: hasPendingInputs ? 'Processing failed. Check the input file format.' : result.message || 'Scan failed.',
+          message: result.message || 'Processing failed. Check the input file format.',
           tone: 'neutral',
         })
         return

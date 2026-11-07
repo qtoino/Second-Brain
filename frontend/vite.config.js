@@ -114,7 +114,7 @@ function handleScanInput(req, res) {
       sendJson(res, {
         processed: false,
         pendingInputs,
-        message: 'Processing new files...',
+        message: `Processing failed: ${error.message}`,
         output: error.output || '',
       })
     })
